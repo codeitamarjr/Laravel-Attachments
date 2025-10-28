@@ -1,7 +1,7 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "quicktappay/attachments",
-    "description": "Reusable polymorphic attachment library for Laravel applications.",
+    "name": "codeitamarjr/attachments",
+    "description": "Reusable polymorphic attachment handling for Laravel.",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -13,13 +13,13 @@
     },
     "autoload": {
         "psr-4": {
-            "QuickTapPay\\Attachments\\": "src/"
+            "CodeItamarJr\\Attachments\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "QuickTapPay\\Attachments\\AttachmentServiceProvider"
+                "CodeItamarJr\\Attachments\\AttachmentServiceProvider"
             ]
         }
     },

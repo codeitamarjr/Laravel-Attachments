@@ -1,17 +1,19 @@
-# QuickTapPay Attachments
+# Laravel Attachments
 
 Reusable polymorphic attachment handling for Laravel 11/12 projects.  
 Provides a trait, service, migration stub, and configuration for storing files on any configured filesystem (including Cloudflare R2).
+
+Repository: https://github.com/codeitamarjr/laravel-attachments
 
 ## Installation
 
 1. **Require the package** (when using it as a standalone dependency):
 
    ```bash
-   composer require quicktappay/attachments
+   composer require codeitamarjr/laravel-attachments
    ```
 
-   In this repository, the package is linked via a path repository under `packages/quicktappay/attachments`.
+   When using locally (e.g. inside QuickTapPay) you can also reference it with a path repository entry.
 
 2. **Publish assets (optional)**
 
@@ -35,7 +37,7 @@ Provides a trait, service, migration stub, and configuration for storing files o
 Use the `HasAttachments` trait on any Eloquent model that needs attachments:
 
 ```php
-use QuickTapPay\Attachments\Traits\HasAttachments;
+use CodeItamarJr\Attachments\Traits\HasAttachments;
 
 class Business extends Model
 {
@@ -50,7 +52,7 @@ This adds the `attachments()` morph-many relation plus a helper `attachment($col
 Inject the `AttachmentService` to store, replace, or delete attachments:
 
 ```php
-use QuickTapPay\Attachments\Services\AttachmentService;
+use CodeItamarJr\Attachments\Services\AttachmentService;
 
 class BusinessController extends Controller
 {
