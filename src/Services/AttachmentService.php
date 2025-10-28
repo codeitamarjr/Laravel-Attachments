@@ -1,12 +1,12 @@
 <?php
 
-namespace QuickTapPay\Attachments\Services;
+namespace CodeItamarJr\Attachments\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use QuickTapPay\Attachments\Models\Attachment;
+use CodeItamarJr\Attachments\Models\Attachment;
 
 class AttachmentService
 {

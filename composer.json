@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "codeitamarjr/attachments",
+    "name": "codeitamarjr/laravel-attachments",
     "description": "Reusable polymorphic attachment handling for Laravel.",
     "type": "library",
     "license": "MIT",

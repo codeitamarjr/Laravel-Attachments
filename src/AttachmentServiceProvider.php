@@ -1,11 +1,10 @@
 <?php
 
-namespace QuickTapPay\Attachments;
+namespace CodeItamarJr\Attachments;
 
 use Illuminate\Contracts\Support\DeferrableProvider;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
-use QuickTapPay\Attachments\Services\AttachmentService;
+use CodeItamarJr\Attachments\Services\AttachmentService;
 
 class AttachmentServiceProvider extends ServiceProvider implements DeferrableProvider
 {
@@ -20,7 +19,7 @@ class AttachmentServiceProvider extends ServiceProvider implements DeferrablePro
         $this->app->alias(AttachmentService::class, 'attachments.service');
     }
 
-    public function boot(Filesystem $filesystem): void
+    public function boot(): void
     {
         $this->publishes([
             __DIR__ . '/../config/attachments.php' => config_path('attachments.php'),

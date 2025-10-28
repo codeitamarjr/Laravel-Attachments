@@ -1,12 +1,12 @@
 <?php
 
-namespace QuickTapPay\Attachments\Traits;
+namespace CodeItamarJr\Attachments\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use QuickTapPay\Attachments\Models\Attachment;
-use QuickTapPay\Attachments\Services\AttachmentService;
+use CodeItamarJr\Attachments\Models\Attachment;
+use CodeItamarJr\Attachments\Services\AttachmentService;
 
 trait HasAttachments
 {

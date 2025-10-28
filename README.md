@@ -92,7 +92,7 @@ The package is compatible with `orchestra/testbench` for isolated package testin
 To run tests (if added later):
 
 ```bash
-cd packages/quicktappay/attachments
+cd packages/laravel-attachments
 composer install
 ./vendor/bin/pest
 ```
