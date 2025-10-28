@@ -99,4 +99,4 @@ composer install
 
 ## License
 
-MIT © QuickTapPay
+MIT © 2025 Itamar Junior
