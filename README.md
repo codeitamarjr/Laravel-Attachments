@@ -37,11 +37,25 @@ Repository: https://github.com/codeitamarjr/laravel-attachments
 Use the `HasAttachments` trait on any Eloquent model that needs attachments:
 
 ```php
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use CodeItamarJr\Attachments\Traits\HasAttachments;
 
-class Business extends Model
+class User extends Model
 {
     use HasAttachments;
+
+    protected $appends = ['avatar_url'];
+
+    public function avatarAttachment(): MorphOne
+    {
+        return $this->attachment('avatar');
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatarAttachment()->first()?->url();
+    }
 }
 ```
 
@@ -54,21 +68,23 @@ Inject the `AttachmentService` to store, replace, or delete attachments:
 ```php
 use CodeItamarJr\Attachments\Services\AttachmentService;
 
-class BusinessController extends Controller
+class ProfileController extends Controller
 {
     public function update(AttachmentService $attachments)
     {
-        $business = Business::findOrFail(1);
-        $file = request()->file('logo');
+        $user = request()->user();
+        $file = request()->file('avatar');
 
-        $attachments->replace($business, $file, 'logo', auth()->id());
+        if ($file) {
+            $attachments->replace($user, $file, 'avatar', $user->getKey());
+        }
     }
 }
 ```
 
 ### Collections
 
-Attachments can be grouped by collection name (default `default`). Call `attachment('logo')` or `attachmentUrl('documents')` to fetch specific collections.
+Attachments can be grouped by collection name (default `default`). For example, use `attachment('avatar')` or `attachmentUrl('avatar')` to reference a user's profile photo.
 
 ### Deleting
 
@@ -76,7 +92,7 @@ When a model using `HasAttachments` is force-deleted, associated attachments are
 You can also delete explicitly:
 
 ```php
-app(AttachmentService::class)->delete($business, 'logo');
+app(AttachmentService::class)->delete($user, 'avatar');
 ```
 
 ## Configuration
@@ -92,7 +108,7 @@ The package is compatible with `orchestra/testbench` for isolated package testin
 To run tests (if added later):
 
 ```bash
-cd packages/laravel-attachments
+cd laravel-attachments
 composer install
 ./vendor/bin/pest
 ```
