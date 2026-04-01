@@ -27,6 +27,7 @@ class AttachmentServiceProvider extends ServiceProvider implements DeferrablePro
 
         $this->publishesMigrations([
             __DIR__ . '/../database/migrations/create_attachments_table.php.stub' => 'create_attachments_table.php',
+            __DIR__ . '/../database/migrations/add_visibility_to_attachments_table.php.stub' => 'add_visibility_to_attachments_table.php',
         ], 'attachments-migrations');
     }
 

@@ -45,6 +45,8 @@ Run the migration:
 php artisan migrate
 ```
 
+If you are upgrading an existing installation, republish the package migrations and run `php artisan migrate` so the `attachments` table gets the new `visibility` column.
+
 ## Configuration
 
 The published `config/attachments.php` file exposes:
