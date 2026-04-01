@@ -274,6 +274,12 @@ Delete one collection:
 $attachments->delete($invoice, 'document');
 ```
 
+Delete one attachment inside a multi-file collection:
+
+```php
+$attachments->deleteById($invoice, $attachmentId);
+```
+
 Delete all attachments for a model:
 
 ```php
@@ -297,6 +303,7 @@ Recommended conventions:
 - Use `firstAttachment()` or `attachmentUrl()` when you want the first file in a multi-file collection
 - Use `replace()` when the collection should behave like a single-slot attachment and older files should be removed
 - Use `replaceById()` when a multi-file collection should keep the rest of its files while replacing only one attachment
+- Use `deleteById()` when a multi-file collection should keep the rest of its files while deleting only one attachment
 
 ## Attachment Model
 
@@ -338,7 +345,9 @@ composer test
 The package currently includes end-to-end coverage for:
 
 - public and private uploads
-- replacing and deleting files
+- single-file and multi-file collection behavior
+- full-collection and single-item replacement
+- full-collection and single-item deletion
 - deleting all collections for a model
 - soft delete vs force delete cleanup
 - attachable contract enforcement

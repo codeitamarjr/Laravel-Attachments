@@ -139,6 +139,24 @@ class AttachmentService
     }
 
     /**
+     * Delete a single attachment from a collection without touching the rest.
+     *
+     * @param  Model  $attachable  The Eloquent model that owns the attachment.
+     * @param  int  $attachmentId  Identifier of the attachment record to delete.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function deleteById(Model $attachable, int $attachmentId): void
+    {
+        $this->guardAttachable($attachable);
+
+        /** @var Attachment $attachment */
+        $attachment = $attachable->attachments()->findOrFail($attachmentId);
+
+        $this->deleteAttachmentRecord($attachment);
+    }
+
+    /**
      * Build the directory prefix used to store a file for an attachable model.
      */
     protected function buildPathPrefix(Model $attachable, string $collection, string $directory): string

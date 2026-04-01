@@ -8,6 +8,7 @@ use CodeItamarJr\Attachments\Services\AttachmentService;
 use CodeItamarJr\Attachments\Tests\Fixtures\PlainModel;
 use CodeItamarJr\Attachments\Tests\Fixtures\TestUser;
 use CodeItamarJr\Attachments\Tests\TestCase;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -144,6 +145,25 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertSame('gallery', $replacement->collection);
     }
 
+    public function test_replace_by_id_works_for_a_single_file_collection(): void
+    {
+        $user = TestUser::create(['name' => 'Replace One Item User']);
+        $service = app(AttachmentService::class);
+
+        $original = $service->store($user, UploadedFile::fake()->image('avatar.jpg'), 'avatar', $user->id);
+        $replacement = $service->replaceById(
+            $user,
+            $original->id,
+            UploadedFile::fake()->image('avatar-new.jpg'),
+            $user->id
+        );
+
+        Storage::disk('attachments-public')->assertMissing($original->path);
+        Storage::disk('attachments-public')->assertExists($replacement->path);
+        $this->assertSame(1, $user->attachmentsFor('avatar')->count());
+        $this->assertSame($replacement->id, $user->firstAttachment('avatar')?->id);
+    }
+
     public function test_delete_removes_the_file_and_database_record(): void
     {
         $user = TestUser::create(['name' => 'Delete User']);
@@ -170,6 +190,58 @@ class AttachmentLifecycleTest extends TestCase
         Storage::disk('attachments-public')->assertMissing($avatar->path);
         Storage::disk('attachments-public')->assertMissing($passport->path);
         $this->assertDatabaseCount('attachments', 0);
+    }
+
+    public function test_delete_by_id_removes_only_the_target_attachment_in_a_multi_file_collection(): void
+    {
+        $user = TestUser::create(['name' => 'Delete By Id User']);
+        $service = app(AttachmentService::class);
+
+        $first = $service->store($user, UploadedFile::fake()->image('a.jpg'), 'gallery', $user->id);
+        $second = $service->store($user, UploadedFile::fake()->image('b.jpg'), 'gallery', $user->id);
+        $third = $service->store($user, UploadedFile::fake()->image('c.jpg'), 'gallery', $user->id);
+
+        $service->deleteById($user, $second->id);
+
+        Storage::disk('attachments-public')->assertExists($first->path);
+        Storage::disk('attachments-public')->assertMissing($second->path);
+        Storage::disk('attachments-public')->assertExists($third->path);
+
+        $galleryIds = $user->attachmentsFor('gallery')->orderBy('id')->pluck('id')->all();
+
+        $this->assertSame([$first->id, $third->id], $galleryIds);
+        $this->assertDatabaseMissing('attachments', ['id' => $second->id]);
+    }
+
+    public function test_delete_by_id_throws_when_the_attachment_does_not_belong_to_the_model(): void
+    {
+        $this->expectException(ModelNotFoundException::class);
+
+        $service = app(AttachmentService::class);
+        $firstUser = TestUser::create(['name' => 'First User']);
+        $secondUser = TestUser::create(['name' => 'Second User']);
+
+        $attachment = $service->store($firstUser, UploadedFile::fake()->image('a.jpg'), 'gallery', $firstUser->id);
+
+        $service->deleteById($secondUser, $attachment->id);
+    }
+
+    public function test_replace_by_id_throws_when_the_attachment_does_not_belong_to_the_model(): void
+    {
+        $this->expectException(ModelNotFoundException::class);
+
+        $service = app(AttachmentService::class);
+        $firstUser = TestUser::create(['name' => 'First Replace User']);
+        $secondUser = TestUser::create(['name' => 'Second Replace User']);
+
+        $attachment = $service->store($firstUser, UploadedFile::fake()->image('a.jpg'), 'gallery', $firstUser->id);
+
+        $service->replaceById(
+            $secondUser,
+            $attachment->id,
+            UploadedFile::fake()->image('b.jpg'),
+            $secondUser->id
+        );
     }
 
     public function test_soft_delete_keeps_attachments_but_force_delete_removes_them(): void
