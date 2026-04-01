@@ -25,13 +25,9 @@ class AttachmentServiceProvider extends ServiceProvider implements DeferrablePro
             __DIR__ . '/../config/attachments.php' => config_path('attachments.php'),
         ], 'attachments-config');
 
-        if (! class_exists('CreateAttachmentsTable')) {
-            $timestamp = date('Y_m_d_His', time());
-            $this->publishes([
-                __DIR__ . '/../database/migrations/create_attachments_table.php.stub' => database_path("migrations/{$timestamp}_create_attachments_table.php"),
-            ], 'attachments-migrations');
-        }
-
+        $this->publishesMigrations([
+            __DIR__ . '/../database/migrations/create_attachments_table.php.stub' => 'create_attachments_table.php',
+        ], 'attachments-migrations');
     }
 
     public function provides(): array

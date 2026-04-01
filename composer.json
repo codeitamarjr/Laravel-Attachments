@@ -1,15 +1,27 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
     "name": "codeitamarjr/laravel-attachments",
-    "description": "Reusable polymorphic attachment handling for Laravel.",
+    "description": "Persist and manage polymorphic file attachments in Laravel applications.",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "attachments",
+        "uploads",
+        "filesystem",
+        "files"
+    ],
+    "homepage": "https://github.com/codeitamarjr/laravel-attachments",
+    "authors": [
+        {
+            "name": "Itamar Junior"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "illuminate/support": "^11.0|^12.0",
         "illuminate/database": "^11.0|^12.0",
-        "illuminate/filesystem": "^11.0|^12.0",
-        "league/flysystem-aws-s3-v3": "^3.0"
+        "illuminate/filesystem": "^11.0|^12.0"
     },
     "autoload": {
         "psr-4": {
@@ -22,6 +34,10 @@
                 "CodeItamarJr\\Attachments\\AttachmentServiceProvider"
             ]
         }
+    },
+    "support": {
+        "issues": "https://github.com/codeitamarjr/laravel-attachments/issues",
+        "source": "https://github.com/codeitamarjr/laravel-attachments"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

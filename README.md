@@ -1,51 +1,79 @@
 # Laravel Attachments
 
-Reusable polymorphic attachment handling for Laravel 11/12 projects.  
-Provides a trait, service, migration stub, and configuration for storing files on any configured filesystem (including Cloudflare R2).
+`codeitamarjr/laravel-attachments` adds a small attachment layer on top of Laravel's filesystem and Eloquent.
 
-Repository: https://github.com/codeitamarjr/laravel-attachments
+It gives you:
+
+- A polymorphic `attachments` table for any Eloquent model
+- A `HasAttachments` trait with relationship helpers
+- An `AttachmentService` for storing, replacing, and deleting files
+- Configurable storage disk and base directory
+
+The package works with any Laravel filesystem disk. If your application uses S3, R2, or another adapter, install and configure that adapter in the host app as usual.
+
+## Requirements
+
+- PHP 8.2+
+- Laravel 11 or 12
 
 ## Installation
 
-1. **Require the package** (when using it as a standalone dependency):
+Install the package via Composer:
 
-   ```bash
-   composer require codeitamarjr/laravel-attachments
-   ```
+```bash
+composer require codeitamarjr/laravel-attachments
+```
 
-   When using locally (e.g. inside QuickTapPay) you can also reference it with a path repository entry.
+Laravel will auto-discover the service provider.
 
-2. **Publish assets (optional)**
+Publish the configuration file if you want to override the defaults:
 
-   ```bash
-   php artisan vendor:publish --tag=attachments-config
-   php artisan vendor:publish --tag=attachments-migrations
-   ```
+```bash
+php artisan vendor:publish --tag=attachments-config
+```
 
-   The config file allows you to set the target filesystem disk and base directory. The migration stub creates the `attachments` table.
+Publish the migration:
 
-3. **Run migrations**
+```bash
+php artisan vendor:publish --tag=attachments-migrations
+```
 
-   ```bash
-   php artisan migrate
-   ```
+Run the migration:
 
-## Usage
+```bash
+php artisan migrate
+```
 
-### Model Trait
+## Configuration
 
-Use the `HasAttachments` trait on any Eloquent model that needs attachments:
+The published `config/attachments.php` file exposes two options:
+
+- `disk`: the filesystem disk used to store uploaded files
+- `directory`: the base directory inside that disk
+
+By default the package reads:
+
+```env
+ATTACHMENTS_DISK=public
+ATTACHMENTS_DIRECTORY=attachments
+```
+
+## Basic Usage
+
+Add the `HasAttachments` trait to any model that should own files:
 
 ```php
+<?php
+
+namespace App\Models;
+
+use CodeItamarJr\Attachments\Traits\HasAttachments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use CodeItamarJr\Attachments\Traits\HasAttachments;
 
 class User extends Model
 {
     use HasAttachments;
-
-    protected $appends = ['avatar_url'];
 
     public function avatarAttachment(): MorphOne
     {
@@ -54,65 +82,99 @@ class User extends Model
 
     public function getAvatarUrlAttribute(): ?string
     {
-        return $this->avatarAttachment()->first()?->url();
+        return $this->attachmentUrl('avatar');
     }
 }
 ```
 
-This adds the `attachments()` morph-many relation plus a helper `attachment($collection)` and `attachmentUrl($collection)`.
+The trait adds:
 
-### Attachment Service
+- `attachments()` for the full morph-many relationship
+- `attachment($collection)` for a single collection entry
+- `attachmentUrl($collection)` for a resolved file URL
 
-Inject the `AttachmentService` to store, replace, or delete attachments:
+## Storing Files
+
+Use `AttachmentService` to create a new attachment:
 
 ```php
 use CodeItamarJr\Attachments\Services\AttachmentService;
 
-class ProfileController extends Controller
+public function storeAvatar(AttachmentService $attachments)
 {
-    public function update(AttachmentService $attachments)
-    {
-        $user = request()->user();
-        $file = request()->file('avatar');
+    $user = request()->user();
+    $file = request()->file('avatar');
 
-        if ($file) {
-            $attachments->replace($user, $file, 'avatar', $user->getKey());
-        }
+    if (! $file) {
+        return;
     }
+
+    $attachments->store($user, $file, 'avatar', $user->getKey());
 }
 ```
 
-### Collections
+Stored files are organized using this pattern:
 
-Attachments can be grouped by collection name (default `default`). For example, use `attachment('avatar')` or `attachmentUrl('avatar')` to reference a user's profile photo.
+```text
+{directory}/{model-name}/{model-id}/{collection}/{hashed-filename}
+```
 
-### Deleting
+Example:
 
-When a model using `HasAttachments` is force-deleted, associated attachments are automatically removed from both storage and the database.  
-You can also delete explicitly:
+```text
+attachments/user/15/avatar/8f9c0d....jpg
+```
+
+## Replacing Files
+
+Replace the current file for a collection:
 
 ```php
-app(AttachmentService::class)->delete($user, 'avatar');
+$attachments->replace($user, $file, 'avatar', $user->getKey());
 ```
 
-## Configuration
+This deletes the previous file in that collection before storing the new one.
 
-`config/attachments.php` exposes:
+## Deleting Files
 
-- `disk` – filesystem disk, defaults to `ATTACHMENTS_DISK` env or `FILESYSTEM_DISK`.
-- `directory` – base directory on the disk (`attachments` by default).
+Delete one collection:
 
-## Testing
-
-The package is compatible with `orchestra/testbench` for isolated package testing.  
-To run tests (if added later):
-
-```bash
-cd laravel-attachments
-composer install
-./vendor/bin/pest
+```php
+$attachments->delete($user, 'avatar');
 ```
+
+Delete all attachments for a model:
+
+```php
+$attachments->delete($user, null);
+```
+
+Models using `HasAttachments` also clean up their stored files automatically when they are force-deleted.
+
+## Attachment Model
+
+Each attachment record stores:
+
+- `collection`
+- `disk`
+- `path`
+- `filename`
+- `mime_type`
+- `size`
+- `uploaded_by`
+
+The included `Attachment` model also provides a `url()` helper to resolve the file URL from the configured disk.
+
+## Notes
+
+- The published migration creates an `uploaded_by` foreign key that references the `users` table.
+- Files are currently stored via Laravel's `storePubliclyAs()` API, so the package is best suited to attachments that should be URL-resolvable from the selected disk.
+- If you use the `public` disk, remember to expose it in your application with Laravel's normal filesystem setup, such as `php artisan storage:link` when applicable.
+
+## Roadmap
+
+The package is usable now, but it would benefit from package-level tests, CI, and a changelog before a broader public release.
 
 ## License
 
-MIT © 2025 Itamar Junior
+MIT. Please see [LICENSE](LICENSE) for more information.
