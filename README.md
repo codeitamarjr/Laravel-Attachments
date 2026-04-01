@@ -28,6 +28,25 @@ In many Laravel applications, file uploads end up being handled piecemeal:
 This package exists to make files feel like a first-class part of your Eloquent models.
 It gives you a reusable way to attach files to any model, persist their metadata, resolve URLs, replace them safely, and delete them cleanly without rebuilding that workflow in every project.
 
+Useful for invoices, users, posts, products, businesses, and any other model that needs persisted file attachments.
+
+## Quick Start
+
+```bash
+composer require codeitamarjr/laravel-attachments
+php artisan vendor:publish --tag=attachments-migrations
+php artisan migrate
+```
+
+```php
+class Invoice extends Model implements Attachable
+{
+    use HasAttachments;
+}
+
+$attachments->store($invoice, $file, 'document', auth()->id());
+```
+
 ## Contents
 
 - [Requirements](#requirements)
@@ -122,6 +141,8 @@ ATTACHMENTS_DIRECTORY=attachments
 ATTACHMENTS_PRIVATE_URL_TTL=5
 ```
 
+`ATTACHMENTS_VISIBILITY` is the default visibility only. You can still store one attachment as `public` and another as `private` by passing the visibility explicitly when storing the file.
+
 Example custom uploader configuration:
 
 ```php
@@ -185,21 +206,21 @@ public function storeInvoiceDocument(AttachmentService $attachments)
         return;
     }
 
-    $attachments->store($invoice, $file, 'document', request()->user()?->getKey());
+    $attachments->store($invoice, $file, 'document', auth()->id());
 }
 ```
 
 Store a private attachment by overriding the default visibility:
 
 ```php
-$attachments->store($invoice, $file, 'signed-copy', request()->user()?->getKey(), 'private');
+$attachments->store($invoice, $file, 'signed-copy', auth()->id(), 'private');
 ```
 
 Store multiple named collections for the same model:
 
 ```php
-$attachments->store($invoice, $documentFile, 'document', request()->user()?->getKey());
-$attachments->store($invoice, $receiptFile, 'receipt', request()->user()?->getKey());
+$attachments->store($invoice, $documentFile, 'document', auth()->id());
+$attachments->store($invoice, $receiptFile, 'receipt', auth()->id());
 ```
 
 Stored files are organized using this pattern:
@@ -219,7 +240,7 @@ attachments/invoice/15/document/8f9c0d....pdf
 Replace the current file for a collection:
 
 ```php
-$attachments->replace($invoice, $file, 'document', request()->user()?->getKey());
+$attachments->replace($invoice, $file, 'document', auth()->id());
 ```
 
 This deletes the previous file in that collection before storing the new one.
@@ -252,6 +273,8 @@ Each attachment record stores:
 - `mime_type`
 - `size`
 - `uploaded_by`
+
+`uploaded_by` stores the uploader model's key, while `uploader()` resolves the related model instance using your package configuration.
 
 The included `Attachment` model provides:
 
