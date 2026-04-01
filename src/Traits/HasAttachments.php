@@ -99,9 +99,48 @@ trait HasAttachments
      * @param  string  $collection  Logical collection name for the attachment.
      * @param  DateTimeInterface|null  $expiresAt  Expiration time for private URLs.
      */
-    public function attachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
+    public function firstAttachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
     {
         return $this->firstAttachment($collection)?->url($expiresAt);
+    }
+
+    /**
+     * Resolve the URL for the last attachment in the given collection.
+     *
+     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  DateTimeInterface|null  $expiresAt  Expiration time for private URLs.
+     */
+    public function lastAttachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
+    {
+        return $this->lastAttachment($collection)?->url($expiresAt);
+    }
+
+    /**
+     * Resolve the URL for the Nth attachment in the given collection using a 1-based position.
+     *
+     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  int  $position  One-based attachment position within the collection.
+     * @param  DateTimeInterface|null  $expiresAt  Expiration time for private URLs.
+     */
+    public function attachmentUrlAt(
+        string $collection = Attachment::DEFAULT_COLLECTION,
+        int $position = 1,
+        ?DateTimeInterface $expiresAt = null
+    ): ?string {
+        return $this->attachmentAt($collection, $position)?->url($expiresAt);
+    }
+
+    /**
+     * Resolve the URL for the first attachment in the given collection.
+     *
+     * This method is kept as a backward-compatible alias to firstAttachmentUrl().
+     *
+     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  DateTimeInterface|null  $expiresAt  Expiration time for private URLs.
+     */
+    public function attachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
+    {
+        return $this->firstAttachmentUrl($collection, $expiresAt);
     }
 
     /**

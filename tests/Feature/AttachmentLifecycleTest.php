@@ -165,6 +165,26 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertNull($user->attachmentAt('gallery', 4));
     }
 
+    public function test_attachment_url_helpers_work_for_multi_file_collections(): void
+    {
+        $user = TestUser::create(['name' => 'URL Helper User']);
+        $service = app(AttachmentService::class);
+
+        $first = $service->store($user, UploadedFile::fake()->image('a.jpg'), 'gallery', $user->id);
+        $second = $service->store($user, UploadedFile::fake()->image('b.jpg'), 'gallery', $user->id);
+        $third = $service->store($user, UploadedFile::fake()->image('c.jpg'), 'gallery', $user->id);
+
+        $firstUrl = 'https://example.test/storage/public/'.$first->path;
+        $secondUrl = 'https://example.test/storage/public/'.$second->path;
+        $thirdUrl = 'https://example.test/storage/public/'.$third->path;
+
+        $this->assertSame($firstUrl, $user->firstAttachmentUrl('gallery'));
+        $this->assertSame($thirdUrl, $user->lastAttachmentUrl('gallery'));
+        $this->assertSame($secondUrl, $user->attachmentUrlAt('gallery', 2));
+        $this->assertSame($firstUrl, $user->attachmentUrl('gallery'));
+        $this->assertNull($user->attachmentUrlAt('gallery', 4));
+    }
+
     public function test_attachment_at_rejects_positions_below_one(): void
     {
         $this->expectException(InvalidArgumentException::class);

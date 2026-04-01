@@ -194,7 +194,10 @@ The trait adds:
 - `firstAttachment($collection)` for the first attachment model in a collection
 - `lastAttachment($collection)` for the last attachment model in a collection
 - `attachmentAt($collection, $position)` for the Nth attachment model in a collection
-- `attachmentUrl($collection, $expiresAt = null)` for the first attachment URL in a collection
+- `firstAttachmentUrl($collection, $expiresAt = null)` for the first attachment URL in a collection
+- `lastAttachmentUrl($collection, $expiresAt = null)` for the last attachment URL in a collection
+- `attachmentUrlAt($collection, $position, $expiresAt = null)` for the Nth attachment URL in a collection
+- `attachmentUrl($collection, $expiresAt = null)` as a backward-compatible alias to `firstAttachmentUrl()`
 
 ## Storing Files
 
@@ -248,6 +251,9 @@ $invoice->attachmentsFor('supporting-documents')->get();
 $invoice->firstAttachment('supporting-documents');
 $invoice->lastAttachment('supporting-documents');
 $invoice->attachmentAt('supporting-documents', 2);
+$invoice->firstAttachmentUrl('supporting-documents');
+$invoice->lastAttachmentUrl('supporting-documents');
+$invoice->attachmentUrlAt('supporting-documents', 2);
 ```
 
 Stored files are organized using this pattern:
@@ -315,7 +321,8 @@ Recommended conventions:
 - Use `attachmentsFor()` when you want all files in a collection
 - Use `singleAttachment()` or `attachment()` when the collection is meant to behave like a single-slot attachment
 - Use `firstAttachment()`, `lastAttachment()`, or `attachmentAt()` when you need specific items from a multi-file collection
-- Use `attachmentUrl()` when you want the first file URL from a collection
+- Use `firstAttachmentUrl()`, `lastAttachmentUrl()`, or `attachmentUrlAt()` when you need specific URLs from a multi-file collection
+- Use `attachmentUrl()` as the backward-compatible first-item URL helper
 - Use `replace()` when the collection should behave like a single-slot attachment and older files should be removed
 - Use `replaceById()` when a multi-file collection should keep the rest of its files while replacing only one attachment
 - Use `deleteById()` when a multi-file collection should keep the rest of its files while deleting only one attachment
