@@ -1,5 +1,6 @@
 # Laravel Attachments
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/codeitamarjr/laravel-attachments.svg)](https://packagist.org/packages/codeitamarjr/laravel-attachments)
 [![Tests](https://github.com/codeitamarjr/Laravel-Attachments/actions/workflows/tests.yml/badge.svg)](https://github.com/codeitamarjr/Laravel-Attachments/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/codeitamarjr/Laravel-Attachments)](LICENSE)
 
@@ -14,6 +15,18 @@ It gives you:
 - Configurable storage disk and base directory
 
 The package works with any Laravel filesystem disk. If your application uses S3, R2, or another adapter, install and configure that adapter in the host app as usual.
+
+## Why This Package Exists
+
+In many Laravel applications, file uploads end up being handled piecemeal:
+
+- store the file in one place
+- save metadata somewhere else
+- manually wire the file back to a model
+- remember to clean up storage when the model or file is replaced
+
+This package exists to make files feel like a first-class part of your Eloquent models.
+It gives you a reusable way to attach files to any model, persist their metadata, resolve URLs, replace them safely, and delete them cleanly without rebuilding that workflow in every project.
 
 ## Contents
 
