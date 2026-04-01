@@ -6,7 +6,12 @@ The format is based on Keep a Changelog and this package follows Semantic Versio
 
 ## Unreleased
 
+## 0.6.0 - 2026-04-02
+
+- Added clearer collection access helpers: `singleAttachment()`, `lastAttachment()`, and `attachmentAt()`.
+- Added explicit collection URL helpers: `firstAttachmentUrl()`, `lastAttachmentUrl()`, and `attachmentUrlAt()`.
 - Removed the `attachmentUrl()` alias in favor of the explicit `firstAttachmentUrl()` helper.
+- Expanded collection lifecycle coverage with more end-to-end tests and clearer README guidance.
 
 ## 0.5.0 - 2026-04-01
 
