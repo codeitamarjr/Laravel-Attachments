@@ -12,6 +12,22 @@ It gives you:
 
 The package works with any Laravel filesystem disk. If your application uses S3, R2, or another adapter, install and configure that adapter in the host app as usual.
 
+## Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Upgrading](#upgrading)
+- [Configuration](#configuration)
+- [Basic Usage](#basic-usage)
+- [Storing Files](#storing-files)
+- [Replacing Files](#replacing-files)
+- [Deleting Files](#deleting-files)
+- [Attachment Model](#attachment-model)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [Changelog](#changelog)
+- [License](#license)
+
 ## Requirements
 
 - PHP 8.2+
@@ -45,8 +61,28 @@ Run the migration:
 php artisan migrate
 ```
 
-If you are upgrading an existing installation, republish the package migrations and run `php artisan migrate` so the `attachments` table gets the new `visibility` column.
-Newer versions also remove the hard foreign key assumption on `uploaded_by`, which makes the package friendlier to applications with custom auth schemas.
+## Upgrading
+
+If you are upgrading from an older release:
+
+1. Publish the latest package migrations:
+
+```bash
+php artisan vendor:publish --tag=attachments-migrations
+```
+
+2. Run your migrations:
+
+```bash
+php artisan migrate
+```
+
+The package now publishes a single upgrade migration stub, `update_attachments_table.php`, which:
+
+- adds the `visibility` column for legacy installations
+- removes the hard foreign key assumption on `uploaded_by`
+
+That makes the package friendlier to applications with custom auth schemas.
 
 ## Configuration
 
@@ -68,6 +104,13 @@ ATTACHMENTS_UPLOADER_MODEL="App\\Models\\User"
 ATTACHMENTS_UPLOADER_FOREIGN_KEY=uploaded_by
 ATTACHMENTS_DIRECTORY=attachments
 ATTACHMENTS_PRIVATE_URL_TTL=5
+```
+
+Example custom uploader configuration:
+
+```php
+'uploader_model' => App\Models\Admin::class,
+'uploader_foreign_key' => 'uploaded_by',
 ```
 
 ## Basic Usage
@@ -134,6 +177,13 @@ Store a private attachment by overriding the default visibility:
 $attachments->store($user, $file, 'passport', $user->getKey(), 'private');
 ```
 
+Store multiple named collections for the same model:
+
+```php
+$attachments->store($user, $avatarFile, 'avatar', $user->getKey());
+$attachments->store($user, $coverFile, 'cover', $user->getKey());
+```
+
 Stored files are organized using this pattern:
 
 ```text
@@ -195,12 +245,42 @@ The included `Attachment` model provides:
 
 - The published migration stores `uploaded_by` as a nullable indexed column without assuming a specific users table schema.
 - The `uploader()` relationship is configurable through `uploader_model` and `uploader_foreign_key`.
-- Private attachments require a filesystem driver that supports Laravel temporary URLs.
+- Private attachments require a filesystem driver that supports Laravel temporary URLs. If the selected disk does not support them, the package throws a clear runtime exception when generating a private URL.
 - If you use the `public` disk, remember to expose it in your application with Laravel's normal filesystem setup, such as `php artisan storage:link` when applicable.
 
-## Roadmap
+## Testing
 
-The package is usable now, but it would benefit from package-level tests, CI, and a changelog before a broader public release.
+Run the package test suite from the package directory:
+
+```bash
+composer install
+composer test
+```
+
+The package currently includes end-to-end coverage for:
+
+- public and private uploads
+- replacing and deleting files
+- deleting all collections for a model
+- soft delete vs force delete cleanup
+- attachable contract enforcement
+- uploader relation configuration
+- legacy schema upgrade behavior
+
+## Contributing
+
+Contributions are welcome. Before opening a pull request:
+
+```bash
+composer install
+composer test
+```
+
+Prefer small, focused changes with updated tests and README examples when public behavior changes.
+
+## Changelog
+
+Changes should be tracked in the Git history until a dedicated `CHANGELOG.md` is added.
 
 ## License
 

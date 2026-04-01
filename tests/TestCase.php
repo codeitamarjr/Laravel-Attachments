@@ -4,6 +4,7 @@ namespace CodeItamarJr\Attachments\Tests;
 
 use CodeItamarJr\Attachments\AttachmentServiceProvider;
 use CodeItamarJr\Attachments\Tests\Fixtures\TestUser;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -91,6 +92,31 @@ abstract class TestCase extends Orchestra
             $table->index('collection');
             $table->index('uploaded_by');
         });
+    }
+
+    protected function migrateLegacyAttachmentsTable(): void
+    {
+        Schema::dropIfExists('attachments');
+
+        Schema::create('attachments', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('attachable');
+            $table->string('collection')->default('default');
+            $table->string('disk');
+            $table->string('path');
+            $table->string('filename');
+            $table->string('mime_type')->nullable();
+            $table->unsignedBigInteger('size')->nullable();
+            $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+
+            $table->index('collection');
+        });
+    }
+
+    protected function loadPackageMigration(string $filename): Migration
+    {
+        return require __DIR__.'/../database/migrations/'.$filename;
     }
 
     protected function recreateDirectories(): void
