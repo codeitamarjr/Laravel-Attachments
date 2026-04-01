@@ -37,7 +37,14 @@ class Attachment extends Model
 
     public function uploader(): BelongsTo
     {
-        return $this->belongsTo(config('auth.providers.users.model'), 'uploaded_by');
+        $model = config('attachments.uploader_model', config('auth.providers.users.model'));
+        $foreignKey = config('attachments.uploader_foreign_key', 'uploaded_by');
+
+        if (! is_string($model) || $model === '') {
+            throw new RuntimeException('Attachment uploader model is not configured.');
+        }
+
+        return $this->belongsTo($model, $foreignKey);
     }
 
     public function isPublic(): bool

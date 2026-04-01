@@ -2,6 +2,7 @@
 
 namespace CodeItamarJr\Attachments\Services;
 
+use CodeItamarJr\Attachments\Contracts\Attachable as AttachableContract;
 use InvalidArgumentException;
 use RuntimeException;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,8 @@ class AttachmentService
         ?string $visibility = null
     ): Attachment
     {
+        $this->guardAttachable($attachable);
+
         $disk = config('attachments.disk');
         $directory = trim(config('attachments.directory'), '/');
         $visibility = $this->resolveVisibility($visibility);
@@ -55,6 +58,7 @@ class AttachmentService
         ?string $visibility = null
     ): Attachment
     {
+        $this->guardAttachable($attachable);
         $this->delete($attachable, $collection);
 
         return $this->store($attachable, $file, $collection, $uploadedBy, $visibility);
@@ -62,6 +66,7 @@ class AttachmentService
 
     public function delete(Model $attachable, ?string $collection = 'default'): void
     {
+        $this->guardAttachable($attachable);
         $query = $attachable->attachments();
 
         if ($collection !== null) {
@@ -90,5 +95,16 @@ class AttachmentService
         }
 
         return $visibility;
+    }
+
+    protected function guardAttachable(Model $attachable): void
+    {
+        if (! $attachable instanceof AttachableContract) {
+            throw new InvalidArgumentException(sprintf(
+                'Model [%s] must implement [%s] to use attachments.',
+                $attachable::class,
+                AttachableContract::class
+            ));
+        }
     }
 }

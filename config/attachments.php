@@ -26,6 +26,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Uploader Model
+    |--------------------------------------------------------------------------
+    |
+    | The model used by the Attachment::uploader() relationship. Leave this
+    | aligned with your application's authenticatable user model.
+    |
+    */
+    'uploader_model' => env('ATTACHMENTS_UPLOADER_MODEL', config('auth.providers.users.model')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Uploader Foreign Key
+    |--------------------------------------------------------------------------
+    |
+    | The attachments table column that stores the uploader identifier.
+    |
+    */
+    'uploader_foreign_key' => env('ATTACHMENTS_UPLOADER_FOREIGN_KEY', 'uploaded_by'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Base Directory
     |--------------------------------------------------------------------------
     |

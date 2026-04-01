@@ -28,12 +28,24 @@
             "CodeItamarJr\\Attachments\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "CodeItamarJr\\Attachments\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
                 "CodeItamarJr\\Attachments\\AttachmentServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
     },
     "support": {
         "issues": "https://github.com/codeitamarjr/laravel-attachments/issues",

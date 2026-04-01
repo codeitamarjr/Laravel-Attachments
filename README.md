@@ -46,6 +46,7 @@ php artisan migrate
 ```
 
 If you are upgrading an existing installation, republish the package migrations and run `php artisan migrate` so the `attachments` table gets the new `visibility` column.
+Newer versions also remove the hard foreign key assumption on `uploaded_by`, which makes the package friendlier to applications with custom auth schemas.
 
 ## Configuration
 
@@ -53,6 +54,8 @@ The published `config/attachments.php` file exposes:
 
 - `disk`: the filesystem disk used to store uploaded files
 - `visibility`: the default visibility for stored attachments
+- `uploader_model`: model used by the `uploader()` relationship
+- `uploader_foreign_key`: attachments column used for the uploader relationship
 - `directory`: the base directory inside that disk
 - `private_url_ttl`: how long private temporary URLs should remain valid
 
@@ -61,6 +64,8 @@ By default the package reads:
 ```env
 ATTACHMENTS_DISK=public
 ATTACHMENTS_VISIBILITY=public
+ATTACHMENTS_UPLOADER_MODEL="App\\Models\\User"
+ATTACHMENTS_UPLOADER_FOREIGN_KEY=uploaded_by
 ATTACHMENTS_DIRECTORY=attachments
 ATTACHMENTS_PRIVATE_URL_TTL=5
 ```
@@ -74,11 +79,12 @@ Add the `HasAttachments` trait to any model that should own files:
 
 namespace App\Models;
 
+use CodeItamarJr\Attachments\Contracts\Attachable;
 use CodeItamarJr\Attachments\Traits\HasAttachments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
-class User extends Model
+class User extends Model implements Attachable
 {
     use HasAttachments;
 
@@ -93,6 +99,8 @@ class User extends Model
     }
 }
 ```
+
+Models that use the package should implement the `CodeItamarJr\Attachments\Contracts\Attachable` contract. The `HasAttachments` trait already provides the required methods.
 
 The trait adds:
 
@@ -185,7 +193,8 @@ The included `Attachment` model provides:
 
 ## Notes
 
-- The published migration creates an `uploaded_by` foreign key that references the `users` table.
+- The published migration stores `uploaded_by` as a nullable indexed column without assuming a specific users table schema.
+- The `uploader()` relationship is configurable through `uploader_model` and `uploader_foreign_key`.
 - Private attachments require a filesystem driver that supports Laravel temporary URLs.
 - If you use the `public` disk, remember to expose it in your application with Laravel's normal filesystem setup, such as `php artisan storage:link` when applicable.
 

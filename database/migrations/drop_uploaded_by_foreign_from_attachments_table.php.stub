@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (! Schema::hasTable('attachments')) {
+            return;
+        }
+
+        Schema::table('attachments', function (Blueprint $table) {
+            try {
+                $table->dropForeign(['uploaded_by']);
+            } catch (Throwable $exception) {
+                // Ignore databases where the constraint does not exist or cannot be dropped safely.
+            }
+        });
+    }
+
+    public function down(): void
+    {
+        if (! Schema::hasTable('attachments')) {
+            return;
+        }
+
+        Schema::table('attachments', function (Blueprint $table) {
+            try {
+                $table->foreign('uploaded_by')->references('id')->on('users')->nullOnDelete();
+            } catch (Throwable $exception) {
+                // Ignore databases where the foreign key cannot be recreated safely.
+            }
+        });
+    }
+};

@@ -18,10 +18,11 @@ return new class extends Migration
             $table->string('filename');
             $table->string('mime_type')->nullable();
             $table->unsignedBigInteger('size')->nullable();
-            $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('uploaded_by')->nullable();
             $table->timestamps();
 
             $table->index('collection');
+            $table->index('uploaded_by');
         });
     }
 
