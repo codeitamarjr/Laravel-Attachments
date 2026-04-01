@@ -11,6 +11,9 @@ use CodeItamarJr\Attachments\Services\AttachmentService;
 
 trait HasAttachments
 {
+    /**
+     * Register the model event hooks for automatic attachment cleanup.
+     */
     public static function bootHasAttachments(): void
     {
         static::deleting(function (Model $model) {
@@ -22,16 +25,28 @@ trait HasAttachments
         });
     }
 
+    /**
+     * Get all attachments associated with the model.
+     */
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
+    /**
+     * Get the attachment relation for a specific collection.
+     */
     public function attachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne
     {
         return $this->morphOne(Attachment::class, 'attachable')->where('collection', $collection);
     }
 
+    /**
+     * Resolve the URL for the first attachment in the given collection.
+     *
+     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  DateTimeInterface|null  $expiresAt  Expiration time for private URLs.
+     */
     public function attachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
     {
         $attachment = $this->relationLoaded('attachments')
@@ -41,6 +56,9 @@ trait HasAttachments
         return $attachment?->url($expiresAt);
     }
 
+    /**
+     * Resolve the attachment service from the container.
+     */
     protected static function resolveAttachmentService(): AttachmentService
     {
         return app(AttachmentService::class);

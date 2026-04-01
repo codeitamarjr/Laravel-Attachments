@@ -13,6 +13,18 @@ use CodeItamarJr\Attachments\Models\Attachment;
 
 class AttachmentService
 {
+    /**
+     * Store a file for an attachable model and persist its metadata.
+     *
+     * @param  Model  $attachable  The Eloquent model that owns the attachment.
+     * @param  UploadedFile  $file  The uploaded file instance to store.
+     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  int|null  $uploadedBy  Identifier of the uploader model, if available.
+     * @param  string|null  $visibility  Override the default visibility with "public" or "private".
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
     public function store(
         Model $attachable,
         UploadedFile $file,
@@ -50,6 +62,18 @@ class AttachmentService
         ]);
     }
 
+    /**
+     * Replace the current attachment in a collection with a new file.
+     *
+     * @param  Model  $attachable  The Eloquent model that owns the attachment.
+     * @param  UploadedFile  $file  The uploaded file instance to store.
+     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  int|null  $uploadedBy  Identifier of the uploader model, if available.
+     * @param  string|null  $visibility  Override the default visibility with "public" or "private".
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
     public function replace(
         Model $attachable,
         UploadedFile $file,
@@ -64,6 +88,14 @@ class AttachmentService
         return $this->store($attachable, $file, $collection, $uploadedBy, $visibility);
     }
 
+    /**
+     * Delete one collection or all attachments for the given model.
+     *
+     * @param  Model  $attachable  The Eloquent model that owns the attachments.
+     * @param  string|null  $collection  Collection name to delete, or null for all collections.
+     *
+     * @throws InvalidArgumentException
+     */
     public function delete(Model $attachable, ?string $collection = Attachment::DEFAULT_COLLECTION): void
     {
         $this->guardAttachable($attachable);
@@ -79,6 +111,9 @@ class AttachmentService
         });
     }
 
+    /**
+     * Build the directory prefix used to store a file for an attachable model.
+     */
     protected function buildPathPrefix(Model $attachable, string $collection, string $directory): string
     {
         $model = Str::kebab(class_basename($attachable));
@@ -86,6 +121,11 @@ class AttachmentService
         return trim("{$directory}/{$model}/{$attachable->getKey()}/{$collection}", '/');
     }
 
+    /**
+     * Resolve and validate the requested attachment visibility.
+     *
+     * @throws InvalidArgumentException
+     */
     protected function resolveVisibility(?string $visibility): string
     {
         $visibility = strtolower($visibility ?? config('attachments.visibility', Attachment::VISIBILITY_PUBLIC));
@@ -97,6 +137,11 @@ class AttachmentService
         return $visibility;
     }
 
+    /**
+     * Ensure the provided model supports the package attachment contract.
+     *
+     * @throws InvalidArgumentException
+     */
     protected function guardAttachable(Model $attachable): void
     {
         if (! $attachable instanceof AttachableContract) {
