@@ -6,6 +6,16 @@ The format is based on Keep a Changelog and this package follows Semantic Versio
 
 ## Unreleased
 
+## 0.5.0 - 2026-04-01
+
+- Clarified multi-file collection semantics across the package API and README.
+- Added `attachmentsFor()` and `firstAttachment()` collection helpers for clearer single-file and multi-file usage.
+- Added `replaceById()` to replace one attachment inside a multi-file collection without clearing the rest.
+- Added `deleteById()` to delete one attachment inside a multi-file collection without clearing the rest.
+- Expanded the README with quick start, package motivation, default visibility notes, and more explicit collection guidance.
+- Added PHPDoc across the public package API for better IDE help and package discoverability.
+- Broadened end-to-end coverage for append, full-collection replace, targeted replace, full-collection delete, targeted delete, and cross-model safety scenarios.
+
 ## 0.4.0 - 2026-04-01
 
 - Added package maintenance files and CI workflow.
