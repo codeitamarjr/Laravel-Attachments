@@ -131,19 +131,6 @@ trait HasAttachments
     }
 
     /**
-     * Resolve the URL for the first attachment in the given collection.
-     *
-     * This method is kept as a backward-compatible alias to firstAttachmentUrl().
-     *
-     * @param  string  $collection  Logical collection name for the attachment.
-     * @param  DateTimeInterface|null  $expiresAt  Expiration time for private URLs.
-     */
-    public function attachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
-    {
-        return $this->firstAttachmentUrl($collection, $expiresAt);
-    }
-
-    /**
      * Resolve the attachment service from the container.
      */
     protected static function resolveAttachmentService(): AttachmentService

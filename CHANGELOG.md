@@ -6,6 +6,8 @@ The format is based on Keep a Changelog and this package follows Semantic Versio
 
 ## Unreleased
 
+- Removed the `attachmentUrl()` alias in favor of the explicit `firstAttachmentUrl()` helper.
+
 ## 0.5.0 - 2026-04-01
 
 - Clarified multi-file collection semantics across the package API and README.

@@ -112,6 +112,8 @@ php artisan vendor:publish --tag=attachments-migrations
 php artisan migrate
 ```
 
+If you are upgrading from a version that used `attachmentUrl()`, switch those calls to `firstAttachmentUrl()`. The old alias was removed to keep the collection URL API explicit.
+
 The package now publishes a single upgrade migration stub, `update_attachments_table.php`, which:
 
 - adds the `visibility` column for legacy installations
@@ -177,7 +179,7 @@ class Invoice extends Model implements Attachable
 
     public function getDocumentUrlAttribute(): ?string
     {
-        return $this->attachmentUrl('document');
+        return $this->firstAttachmentUrl('document');
     }
 }
 ```
@@ -197,7 +199,6 @@ The trait adds:
 - `firstAttachmentUrl($collection, $expiresAt = null)` for the first attachment URL in a collection
 - `lastAttachmentUrl($collection, $expiresAt = null)` for the last attachment URL in a collection
 - `attachmentUrlAt($collection, $position, $expiresAt = null)` for the Nth attachment URL in a collection
-- `attachmentUrl($collection, $expiresAt = null)` as a backward-compatible alias to `firstAttachmentUrl()`
 
 ## Storing Files
 
@@ -322,7 +323,6 @@ Recommended conventions:
 - Use `singleAttachment()` or `attachment()` when the collection is meant to behave like a single-slot attachment
 - Use `firstAttachment()`, `lastAttachment()`, or `attachmentAt()` when you need specific items from a multi-file collection
 - Use `firstAttachmentUrl()`, `lastAttachmentUrl()`, or `attachmentUrlAt()` when you need specific URLs from a multi-file collection
-- Use `attachmentUrl()` as the backward-compatible first-item URL helper
 - Use `replace()` when the collection should behave like a single-slot attachment and older files should be removed
 - Use `replaceById()` when a multi-file collection should keep the rest of its files while replacing only one attachment
 - Use `deleteById()` when a multi-file collection should keep the rest of its files while deleting only one attachment

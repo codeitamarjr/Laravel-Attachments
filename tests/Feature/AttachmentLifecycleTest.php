@@ -39,7 +39,7 @@ class AttachmentLifecycleTest extends TestCase
             'https://example.test/storage/public/'.$attachment->path,
             $attachment->url()
         );
-        $this->assertSame($attachment->url(), $user->attachmentUrl('avatar'));
+        $this->assertSame($attachment->url(), $user->firstAttachmentUrl('avatar'));
     }
 
     public function test_it_stores_a_private_attachment_and_returns_a_temporary_url(): void
@@ -59,7 +59,7 @@ class AttachmentLifecycleTest extends TestCase
             'https://example.test/temp/'.$attachment->path.'?expires='.$expiresAt->getTimestamp(),
             $attachment->url($expiresAt)
         );
-        $this->assertSame($attachment->url($expiresAt), $user->attachmentUrl('passport', $expiresAt));
+        $this->assertSame($attachment->url($expiresAt), $user->firstAttachmentUrl('passport', $expiresAt));
     }
 
     public function test_replace_removes_the_previous_file_and_keeps_a_single_record(): void
@@ -181,7 +181,6 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertSame($firstUrl, $user->firstAttachmentUrl('gallery'));
         $this->assertSame($thirdUrl, $user->lastAttachmentUrl('gallery'));
         $this->assertSame($secondUrl, $user->attachmentUrlAt('gallery', 2));
-        $this->assertSame($firstUrl, $user->attachmentUrl('gallery'));
         $this->assertNull($user->attachmentUrlAt('gallery', 4));
     }
 
@@ -400,8 +399,8 @@ class AttachmentLifecycleTest extends TestCase
 
         $expectedUrl = 'https://example.test/storage/public/'.$attachment->path;
 
-        $this->assertSame($expectedUrl, $lazyUser->attachmentUrl('avatar'));
-        $this->assertSame($expectedUrl, $eagerUser->attachmentUrl('avatar'));
+        $this->assertSame($expectedUrl, $lazyUser->firstAttachmentUrl('avatar'));
+        $this->assertSame($expectedUrl, $eagerUser->firstAttachmentUrl('avatar'));
     }
 
     public function test_private_attachments_throw_a_clear_error_when_temporary_urls_are_unsupported(): void
