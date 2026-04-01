@@ -89,6 +89,36 @@ class AttachmentService
     }
 
     /**
+     * Replace a single attachment in place without clearing the rest of the collection.
+     *
+     * @param  Model  $attachable  The Eloquent model that owns the attachment.
+     * @param  int  $attachmentId  Identifier of the attachment record to replace.
+     * @param  UploadedFile  $file  The uploaded file instance to store.
+     * @param  int|null  $uploadedBy  Identifier of the uploader model, if available.
+     * @param  string|null  $visibility  Override the default visibility with "public" or "private".
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    public function replaceById(
+        Model $attachable,
+        int $attachmentId,
+        UploadedFile $file,
+        ?int $uploadedBy = null,
+        ?string $visibility = null
+    ): Attachment {
+        $this->guardAttachable($attachable);
+
+        /** @var Attachment $attachment */
+        $attachment = $attachable->attachments()->findOrFail($attachmentId);
+        $collection = $attachment->collection;
+
+        $this->deleteAttachmentRecord($attachment);
+
+        return $this->store($attachable, $file, $collection, $uploadedBy, $visibility);
+    }
+
+    /**
      * Delete one collection or all attachments for the given model.
      *
      * @param  Model  $attachable  The Eloquent model that owns the attachments.
@@ -105,10 +135,7 @@ class AttachmentService
             $query->where('collection', $collection);
         }
 
-        $query->each(function (Attachment $attachment) {
-            Storage::disk($attachment->disk)->delete($attachment->path);
-            $attachment->delete();
-        });
+        $query->each(fn (Attachment $attachment) => $this->deleteAttachmentRecord($attachment));
     }
 
     /**
@@ -151,5 +178,14 @@ class AttachmentService
                 AttachableContract::class
             ));
         }
+    }
+
+    /**
+     * Delete the stored file and database record for a single attachment.
+     */
+    protected function deleteAttachmentRecord(Attachment $attachment): void
+    {
+        Storage::disk($attachment->disk)->delete($attachment->path);
+        $attachment->delete();
     }
 }

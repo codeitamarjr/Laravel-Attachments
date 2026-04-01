@@ -258,6 +258,14 @@ $attachments->replace($invoice, $file, 'document', auth()->id());
 
 `replace()` replaces the whole target collection. Any existing attachments in that collection are deleted before the new file is stored.
 
+Replace a single attachment inside a multi-file collection:
+
+```php
+$attachments->replaceById($invoice, $attachmentId, $file, auth()->id());
+```
+
+Use this when a collection contains multiple files, such as a gallery or supporting documents list, and only one specific attachment should be replaced.
+
 ## Deleting Files
 
 Delete one collection:
@@ -288,6 +296,7 @@ Recommended conventions:
 - Use `attachment()` when the collection is meant to behave like a single-slot attachment
 - Use `firstAttachment()` or `attachmentUrl()` when you want the first file in a multi-file collection
 - Use `replace()` when the collection should behave like a single-slot attachment and older files should be removed
+- Use `replaceById()` when a multi-file collection should keep the rest of its files while replacing only one attachment
 
 ## Attachment Model
 

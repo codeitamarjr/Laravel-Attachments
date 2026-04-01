@@ -113,6 +113,37 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertSame($receipt->id, $user->firstAttachment('receipts')?->id);
     }
 
+    public function test_replace_by_id_replaces_only_the_target_attachment_in_a_multi_file_collection(): void
+    {
+        $user = TestUser::create(['name' => 'Replace By Id User']);
+        $service = app(AttachmentService::class);
+
+        $first = $service->store($user, UploadedFile::fake()->image('a.jpg'), 'gallery', $user->id);
+        $second = $service->store($user, UploadedFile::fake()->image('b.jpg'), 'gallery', $user->id);
+        $third = $service->store($user, UploadedFile::fake()->image('c.jpg'), 'gallery', $user->id);
+
+        $replacement = $service->replaceById(
+            $user,
+            $second->id,
+            UploadedFile::fake()->image('b-new.jpg'),
+            $user->id
+        );
+
+        Storage::disk('attachments-public')->assertExists($first->path);
+        Storage::disk('attachments-public')->assertMissing($second->path);
+        Storage::disk('attachments-public')->assertExists($third->path);
+        Storage::disk('attachments-public')->assertExists($replacement->path);
+
+        $galleryIds = $user->attachmentsFor('gallery')->orderBy('id')->pluck('id')->all();
+
+        $this->assertCount(3, $galleryIds);
+        $this->assertContains($first->id, $galleryIds);
+        $this->assertContains($third->id, $galleryIds);
+        $this->assertContains($replacement->id, $galleryIds);
+        $this->assertDatabaseMissing('attachments', ['id' => $second->id]);
+        $this->assertSame('gallery', $replacement->collection);
+    }
+
     public function test_delete_removes_the_file_and_database_record(): void
     {
         $user = TestUser::create(['name' => 'Delete User']);
