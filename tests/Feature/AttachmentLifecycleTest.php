@@ -76,6 +76,43 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertSame(1, Attachment::query()->where('attachable_id', $user->id)->count());
     }
 
+    public function test_store_appends_multiple_files_to_the_same_collection(): void
+    {
+        $user = TestUser::create(['name' => 'Append User']);
+        $service = app(AttachmentService::class);
+
+        $first = $service->store($user, UploadedFile::fake()->image('one.jpg'), 'gallery', $user->id);
+        $second = $service->store($user, UploadedFile::fake()->image('two.jpg'), 'gallery', $user->id);
+
+        $gallery = $user->attachmentsFor('gallery')->orderBy('id')->get();
+
+        $this->assertCount(2, $gallery);
+        $this->assertSame([$first->id, $second->id], $gallery->pluck('id')->all());
+        $this->assertSame($first->id, $user->firstAttachment('gallery')?->id);
+        $this->assertSame($first->id, $user->attachment('gallery')->first()?->id);
+    }
+
+    public function test_replace_clears_the_target_collection_but_preserves_other_collections(): void
+    {
+        $user = TestUser::create(['name' => 'Scoped Replace User']);
+        $service = app(AttachmentService::class);
+
+        $firstDocument = $service->store($user, UploadedFile::fake()->create('one.pdf', 10), 'documents', $user->id);
+        $secondDocument = $service->store($user, UploadedFile::fake()->create('two.pdf', 10), 'documents', $user->id);
+        $receipt = $service->store($user, UploadedFile::fake()->create('receipt.pdf', 10), 'receipts', $user->id);
+
+        $replacement = $service->replace($user, UploadedFile::fake()->create('final.pdf', 10), 'documents', $user->id);
+
+        Storage::disk('attachments-public')->assertMissing($firstDocument->path);
+        Storage::disk('attachments-public')->assertMissing($secondDocument->path);
+        Storage::disk('attachments-public')->assertExists($replacement->path);
+        Storage::disk('attachments-public')->assertExists($receipt->path);
+
+        $this->assertSame(1, $user->attachmentsFor('documents')->count());
+        $this->assertSame($replacement->id, $user->firstAttachment('documents')?->id);
+        $this->assertSame($receipt->id, $user->firstAttachment('receipts')?->id);
+    }
+
     public function test_delete_removes_the_file_and_database_record(): void
     {
         $user = TestUser::create(['name' => 'Delete User']);
@@ -190,8 +227,8 @@ class AttachmentLifecycleTest extends TestCase
         $avatar = $service->store($user, UploadedFile::fake()->image('avatar.jpg'), 'avatar', $user->id);
         $cover = $service->store($user, UploadedFile::fake()->image('cover.jpg'), 'cover', $user->id);
 
-        $this->assertSame($avatar->id, $user->attachment('avatar')->first()?->id);
-        $this->assertSame($cover->id, $user->attachment('cover')->first()?->id);
+        $this->assertSame($avatar->id, $user->firstAttachment('avatar')?->id);
+        $this->assertSame($cover->id, $user->firstAttachment('cover')?->id);
         $this->assertCount(2, $user->attachments()->get());
     }
 

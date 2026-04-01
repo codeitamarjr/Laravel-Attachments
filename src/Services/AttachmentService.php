@@ -63,11 +63,11 @@ class AttachmentService
     }
 
     /**
-     * Replace the current attachment in a collection with a new file.
+     * Replace all attachments in a collection with a new file.
      *
      * @param  Model  $attachable  The Eloquent model that owns the attachment.
      * @param  UploadedFile  $file  The uploaded file instance to store.
-     * @param  string  $collection  Logical collection name for the attachment.
+     * @param  string  $collection  Logical collection name whose existing attachments should be replaced.
      * @param  int|null  $uploadedBy  Identifier of the uploader model, if available.
      * @param  string|null  $visibility  Override the default visibility with "public" or "private".
      *

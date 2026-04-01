@@ -9,7 +9,7 @@
 It gives you:
 
 - A polymorphic `attachments` table for any Eloquent model
-- A `HasAttachments` trait with relationship helpers
+- A `HasAttachments` trait with explicit single-file and multi-file collection helpers
 - An `AttachmentService` for storing, replacing, and deleting files
 - Public/private visibility handling with URL abstraction
 - Configurable storage disk and base directory
@@ -186,8 +186,10 @@ Models that use the package should implement the `CodeItamarJr\Attachments\Contr
 The trait adds:
 
 - `attachments()` for the full morph-many relationship
-- `attachment($collection)` for a single collection entry
-- `attachmentUrl($collection, $expiresAt = null)` for a resolved file URL
+- `attachmentsFor($collection)` for all attachments in a collection
+- `attachment($collection)` for single-file collections by convention
+- `firstAttachment($collection)` for the first attachment model in a collection
+- `attachmentUrl($collection, $expiresAt = null)` for the first attachment URL in a collection
 
 ## Storing Files
 
@@ -210,6 +212,8 @@ public function storeInvoiceDocument(AttachmentService $attachments)
 }
 ```
 
+`store()` appends a new attachment to the selected collection. This makes multi-file collections a first-class feature.
+
 Store a private attachment by overriding the default visibility:
 
 ```php
@@ -221,6 +225,15 @@ Store multiple named collections for the same model:
 ```php
 $attachments->store($invoice, $documentFile, 'document', auth()->id());
 $attachments->store($invoice, $receiptFile, 'receipt', auth()->id());
+```
+
+Store multiple files in the same collection:
+
+```php
+$attachments->store($invoice, $scanA, 'supporting-documents', auth()->id());
+$attachments->store($invoice, $scanB, 'supporting-documents', auth()->id());
+
+$invoice->attachmentsFor('supporting-documents')->get();
 ```
 
 Stored files are organized using this pattern:
@@ -243,7 +256,7 @@ Replace the current file for a collection:
 $attachments->replace($invoice, $file, 'document', auth()->id());
 ```
 
-This deletes the previous file in that collection before storing the new one.
+`replace()` replaces the whole target collection. Any existing attachments in that collection are deleted before the new file is stored.
 
 ## Deleting Files
 
@@ -260,6 +273,21 @@ $attachments->delete($invoice, null);
 ```
 
 Models using `HasAttachments` also clean up their stored files automatically when they are force-deleted.
+
+## Collection Semantics
+
+Collections can be used in two ways:
+
+- Single-file collections, such as `logo`, `avatar`, or `signed-copy`
+- Multi-file collections, such as `documents`, `receipts`, or `gallery`
+
+Recommended conventions:
+
+- Use `store()` to append files to a collection
+- Use `attachmentsFor()` when you want all files in a collection
+- Use `attachment()` when the collection is meant to behave like a single-slot attachment
+- Use `firstAttachment()` or `attachmentUrl()` when you want the first file in a multi-file collection
+- Use `replace()` when the collection should behave like a single-slot attachment and older files should be removed
 
 ## Attachment Model
 

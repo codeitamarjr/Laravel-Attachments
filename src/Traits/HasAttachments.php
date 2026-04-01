@@ -34,11 +34,30 @@ trait HasAttachments
     }
 
     /**
-     * Get the attachment relation for a specific collection.
+     * Get all attachments in a specific collection.
+     */
+    public function attachmentsFor(string $collection = Attachment::DEFAULT_COLLECTION): MorphMany
+    {
+        return $this->attachments()->where('collection', $collection);
+    }
+
+    /**
+     * Get the single-file attachment relation for a specific collection.
+     *
+     * This method is best suited for collections that are treated as
+     * single-slot attachments, such as an avatar, logo, or signed copy.
      */
     public function attachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne
     {
         return $this->morphOne(Attachment::class, 'attachable')->where('collection', $collection);
+    }
+
+    /**
+     * Get the first attachment model for a specific collection.
+     */
+    public function firstAttachment(string $collection = Attachment::DEFAULT_COLLECTION): ?Attachment
+    {
+        return $this->attachmentsFor($collection)->orderBy('id')->first();
     }
 
     /**
@@ -49,11 +68,7 @@ trait HasAttachments
      */
     public function attachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
     {
-        $attachment = $this->relationLoaded('attachments')
-            ? $this->attachments->firstWhere('collection', $collection)
-            : $this->attachment($collection)->first();
-
-        return $attachment?->url($expiresAt);
+        return $this->firstAttachment($collection)?->url($expiresAt);
     }
 
     /**
