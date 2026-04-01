@@ -47,9 +47,17 @@ trait HasAttachments
      * This method is best suited for collections that are treated as
      * single-slot attachments, such as an avatar, logo, or signed copy.
      */
-    public function attachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne
+    public function singleAttachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne
     {
         return $this->morphOne(Attachment::class, 'attachable')->where('collection', $collection);
+    }
+
+    /**
+     * Get the backward-compatible single-file attachment relation alias.
+     */
+    public function attachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne
+    {
+        return $this->singleAttachment($collection);
     }
 
     /**
@@ -58,6 +66,31 @@ trait HasAttachments
     public function firstAttachment(string $collection = Attachment::DEFAULT_COLLECTION): ?Attachment
     {
         return $this->attachmentsFor($collection)->orderBy('id')->first();
+    }
+
+    /**
+     * Get the last attachment model for a specific collection.
+     */
+    public function lastAttachment(string $collection = Attachment::DEFAULT_COLLECTION): ?Attachment
+    {
+        return $this->attachmentsFor($collection)->orderByDesc('id')->first();
+    }
+
+    /**
+     * Get the Nth attachment model for a specific collection using a 1-based position.
+     *
+     * @param  int  $position  One-based attachment position within the collection.
+     */
+    public function attachmentAt(string $collection = Attachment::DEFAULT_COLLECTION, int $position = 1): ?Attachment
+    {
+        if ($position < 1) {
+            throw new \InvalidArgumentException('Attachment position must be greater than or equal to 1.');
+        }
+
+        return $this->attachmentsFor($collection)
+            ->orderBy('id')
+            ->skip($position - 1)
+            ->first();
     }
 
     /**

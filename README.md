@@ -189,8 +189,11 @@ The trait adds:
 
 - `attachments()` for the full morph-many relationship
 - `attachmentsFor($collection)` for all attachments in a collection
+- `singleAttachment($collection)` for single-file collections by convention
 - `attachment($collection)` for single-file collections by convention
 - `firstAttachment($collection)` for the first attachment model in a collection
+- `lastAttachment($collection)` for the last attachment model in a collection
+- `attachmentAt($collection, $position)` for the Nth attachment model in a collection
 - `attachmentUrl($collection, $expiresAt = null)` for the first attachment URL in a collection
 
 ## Storing Files
@@ -242,6 +245,9 @@ $attachments->store($invoice, $scanA, 'supporting-documents', auth()->id());
 $attachments->store($invoice, $scanB, 'supporting-documents', auth()->id());
 
 $invoice->attachmentsFor('supporting-documents')->get();
+$invoice->firstAttachment('supporting-documents');
+$invoice->lastAttachment('supporting-documents');
+$invoice->attachmentAt('supporting-documents', 2);
 ```
 
 Stored files are organized using this pattern:
@@ -307,8 +313,9 @@ Recommended conventions:
 
 - Use `store()` to append files to a collection
 - Use `attachmentsFor()` when you want all files in a collection
-- Use `attachment()` when the collection is meant to behave like a single-slot attachment
-- Use `firstAttachment()` or `attachmentUrl()` when you want the first file in a multi-file collection
+- Use `singleAttachment()` or `attachment()` when the collection is meant to behave like a single-slot attachment
+- Use `firstAttachment()`, `lastAttachment()`, or `attachmentAt()` when you need specific items from a multi-file collection
+- Use `attachmentUrl()` when you want the first file URL from a collection
 - Use `replace()` when the collection should behave like a single-slot attachment and older files should be removed
 - Use `replaceById()` when a multi-file collection should keep the rest of its files while replacing only one attachment
 - Use `deleteById()` when a multi-file collection should keep the rest of its files while deleting only one attachment

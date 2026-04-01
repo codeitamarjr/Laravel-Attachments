@@ -90,7 +90,10 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertCount(2, $gallery);
         $this->assertSame([$first->id, $second->id], $gallery->pluck('id')->all());
         $this->assertSame($first->id, $user->firstAttachment('gallery')?->id);
+        $this->assertSame($second->id, $user->lastAttachment('gallery')?->id);
+        $this->assertSame($second->id, $user->attachmentAt('gallery', 2)?->id);
         $this->assertSame($first->id, $user->attachment('gallery')->first()?->id);
+        $this->assertSame($first->id, $user->singleAttachment('gallery')->first()?->id);
     }
 
     public function test_replace_clears_the_target_collection_but_preserves_other_collections(): void
@@ -143,6 +146,33 @@ class AttachmentLifecycleTest extends TestCase
         $this->assertContains($replacement->id, $galleryIds);
         $this->assertDatabaseMissing('attachments', ['id' => $second->id]);
         $this->assertSame('gallery', $replacement->collection);
+    }
+
+    public function test_attachment_position_helpers_work_for_multi_file_collections(): void
+    {
+        $user = TestUser::create(['name' => 'Position User']);
+        $service = app(AttachmentService::class);
+
+        $first = $service->store($user, UploadedFile::fake()->image('a.jpg'), 'gallery', $user->id);
+        $second = $service->store($user, UploadedFile::fake()->image('b.jpg'), 'gallery', $user->id);
+        $third = $service->store($user, UploadedFile::fake()->image('c.jpg'), 'gallery', $user->id);
+
+        $this->assertSame($first->id, $user->firstAttachment('gallery')?->id);
+        $this->assertSame($third->id, $user->lastAttachment('gallery')?->id);
+        $this->assertSame($first->id, $user->attachmentAt('gallery', 1)?->id);
+        $this->assertSame($second->id, $user->attachmentAt('gallery', 2)?->id);
+        $this->assertSame($third->id, $user->attachmentAt('gallery', 3)?->id);
+        $this->assertNull($user->attachmentAt('gallery', 4));
+    }
+
+    public function test_attachment_at_rejects_positions_below_one(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Attachment position must be greater than or equal to 1.');
+
+        $user = TestUser::create(['name' => 'Invalid Position User']);
+
+        $user->attachmentAt('gallery', 0);
     }
 
     public function test_replace_by_id_works_for_a_single_file_collection(): void

@@ -21,5 +21,10 @@ interface Attachable
     /**
      * Get the single-file attachment relation for a specific collection.
      */
+    public function singleAttachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne;
+
+    /**
+     * Get the backward-compatible single-file attachment relation alias.
+     */
     public function attachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne;
 }
