@@ -14,6 +14,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default Visibility
+    |--------------------------------------------------------------------------
+    |
+    | Attachments may be stored as either public or private files. Public
+    | files resolve with Storage::url(), while private files use
+    | temporary URLs when accessed through the package helpers.
+    |
+    */
+    'visibility' => env('ATTACHMENTS_VISIBILITY', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Base Directory
     |--------------------------------------------------------------------------
     |
@@ -21,4 +33,15 @@ return [
     |
     */
     'directory' => env('ATTACHMENTS_DIRECTORY', 'attachments'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Private URL Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | When generating URLs for private attachments, the package creates a
+    | temporary URL that expires after this many minutes.
+    |
+    */
+    'private_url_ttl' => (int) env('ATTACHMENTS_PRIVATE_URL_TTL', 5),
 ];

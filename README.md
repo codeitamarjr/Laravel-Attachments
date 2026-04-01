@@ -7,6 +7,7 @@ It gives you:
 - A polymorphic `attachments` table for any Eloquent model
 - A `HasAttachments` trait with relationship helpers
 - An `AttachmentService` for storing, replacing, and deleting files
+- Public/private visibility handling with URL abstraction
 - Configurable storage disk and base directory
 
 The package works with any Laravel filesystem disk. If your application uses S3, R2, or another adapter, install and configure that adapter in the host app as usual.
@@ -46,16 +47,20 @@ php artisan migrate
 
 ## Configuration
 
-The published `config/attachments.php` file exposes two options:
+The published `config/attachments.php` file exposes:
 
 - `disk`: the filesystem disk used to store uploaded files
+- `visibility`: the default visibility for stored attachments
 - `directory`: the base directory inside that disk
+- `private_url_ttl`: how long private temporary URLs should remain valid
 
 By default the package reads:
 
 ```env
 ATTACHMENTS_DISK=public
+ATTACHMENTS_VISIBILITY=public
 ATTACHMENTS_DIRECTORY=attachments
+ATTACHMENTS_PRIVATE_URL_TTL=5
 ```
 
 ## Basic Usage
@@ -91,7 +96,7 @@ The trait adds:
 
 - `attachments()` for the full morph-many relationship
 - `attachment($collection)` for a single collection entry
-- `attachmentUrl($collection)` for a resolved file URL
+- `attachmentUrl($collection, $expiresAt = null)` for a resolved file URL
 
 ## Storing Files
 
@@ -111,6 +116,12 @@ public function storeAvatar(AttachmentService $attachments)
 
     $attachments->store($user, $file, 'avatar', $user->getKey());
 }
+```
+
+Store a private attachment by overriding the default visibility:
+
+```php
+$attachments->store($user, $file, 'passport', $user->getKey(), 'private');
 ```
 
 Stored files are organized using this pattern:
@@ -158,17 +169,22 @@ Each attachment record stores:
 - `collection`
 - `disk`
 - `path`
+- `visibility`
 - `filename`
 - `mime_type`
 - `size`
 - `uploaded_by`
 
-The included `Attachment` model also provides a `url()` helper to resolve the file URL from the configured disk.
+The included `Attachment` model provides:
+
+- `url()` which returns a normal URL for public files and a temporary URL for private files
+- `temporaryUrl()` when you want to explicitly generate a signed temporary URL
+- `isPublic()` and `isPrivate()` visibility helpers
 
 ## Notes
 
 - The published migration creates an `uploaded_by` foreign key that references the `users` table.
-- Files are currently stored via Laravel's `storePubliclyAs()` API, so the package is best suited to attachments that should be URL-resolvable from the selected disk.
+- Private attachments require a filesystem driver that supports Laravel temporary URLs.
 - If you use the `public` disk, remember to expose it in your application with Laravel's normal filesystem setup, such as `php artisan storage:link` when applicable.
 
 ## Roadmap

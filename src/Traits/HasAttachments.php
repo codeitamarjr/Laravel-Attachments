@@ -2,6 +2,7 @@
 
 namespace CodeItamarJr\Attachments\Traits;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -31,12 +32,12 @@ trait HasAttachments
         return $this->morphOne(Attachment::class, 'attachable')->where('collection', $collection);
     }
 
-    public function attachmentUrl(string $collection = 'default'): ?string
+    public function attachmentUrl(string $collection = 'default', ?DateTimeInterface $expiresAt = null): ?string
     {
         $attachment = $this->relationLoaded('attachments')
             ? $this->attachments->firstWhere('collection', $collection)
             : $this->attachment($collection)->first();
 
-        return $attachment?->url();
+        return $attachment?->url($expiresAt);
     }
 }
