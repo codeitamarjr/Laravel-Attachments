@@ -150,6 +150,8 @@ Example custom uploader configuration:
 'uploader_foreign_key' => 'uploaded_by',
 ```
 
+The uploader is optional. If you store an attachment without passing an uploader ID, `uploaded_by` will be `null` and the `uploader()` relation will also resolve to `null`.
+
 ## Basic Usage
 
 Add the `HasAttachments` trait to any model that should own files:
@@ -213,6 +215,12 @@ public function storeInvoiceDocument(AttachmentService $attachments)
 ```
 
 `store()` appends a new attachment to the selected collection. This makes multi-file collections a first-class feature.
+
+If you do not want to associate the attachment with an uploader, you can omit the fourth argument:
+
+```php
+$attachments->store($invoice, $file, 'document');
+```
 
 Store a private attachment by overriding the default visibility:
 
@@ -349,6 +357,7 @@ The package currently includes end-to-end coverage for:
 - full-collection and single-item replacement
 - full-collection and single-item deletion
 - deleting all collections for a model
+- optional uploader behavior
 - soft delete vs force delete cleanup
 - attachable contract enforcement
 - uploader relation configuration
