@@ -11,7 +11,7 @@
         "filesystem",
         "files"
     ],
-    "homepage": "https://github.com/codeitamarjr/laravel-attachments",
+    "homepage": "https://github.com/codeitamarjr/Laravel-Attachments",
     "authors": [
         {
             "name": "Itamar Junior"
@@ -48,8 +48,10 @@
         "test": "vendor/bin/phpunit"
     },
     "support": {
-        "issues": "https://github.com/codeitamarjr/laravel-attachments/issues",
-        "source": "https://github.com/codeitamarjr/laravel-attachments"
+        "docs": "https://github.com/codeitamarjr/Laravel-Attachments#readme",
+        "issues": "https://github.com/codeitamarjr/Laravel-Attachments/issues",
+        "security": "https://github.com/codeitamarjr/Laravel-Attachments/security/policy",
+        "source": "https://github.com/codeitamarjr/Laravel-Attachments"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

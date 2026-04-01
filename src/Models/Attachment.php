@@ -15,6 +15,14 @@ class Attachment extends Model
 {
     use HasFactory;
 
+    public const DEFAULT_COLLECTION = 'default';
+
+    public const VISIBILITY_PUBLIC = 'public';
+
+    public const VISIBILITY_PRIVATE = 'private';
+
+    public const DEFAULT_PRIVATE_URL_TTL = 5;
+
     protected $fillable = [
         'collection',
         'disk',
@@ -49,12 +57,12 @@ class Attachment extends Model
 
     public function isPublic(): bool
     {
-        return $this->visibility === 'public';
+        return $this->visibility === self::VISIBILITY_PUBLIC;
     }
 
     public function isPrivate(): bool
     {
-        return $this->visibility === 'private';
+        return $this->visibility === self::VISIBILITY_PRIVATE;
     }
 
     public function url(?DateTimeInterface $expiresAt = null, array $options = []): ?string
@@ -79,7 +87,7 @@ class Attachment extends Model
         try {
             return Storage::disk($this->disk)->temporaryUrl(
                 $this->path,
-                $expiresAt ?? now()->addMinutes(config('attachments.private_url_ttl', 5)),
+                $expiresAt ?? now()->addMinutes(config('attachments.private_url_ttl', self::DEFAULT_PRIVATE_URL_TTL)),
                 $options
             );
         } catch (Throwable $exception) {

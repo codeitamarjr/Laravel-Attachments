@@ -1,5 +1,8 @@
 # Laravel Attachments
 
+[![Tests](https://github.com/codeitamarjr/Laravel-Attachments/actions/workflows/tests.yml/badge.svg)](https://github.com/codeitamarjr/Laravel-Attachments/actions/workflows/tests.yml)
+[![License](https://img.shields.io/github/license/codeitamarjr/Laravel-Attachments)](LICENSE)
+
 `codeitamarjr/laravel-attachments` adds a small attachment layer on top of Laravel's filesystem and Eloquent.
 
 It gives you:
@@ -280,7 +283,7 @@ Prefer small, focused changes with updated tests and README examples when public
 
 ## Changelog
 
-Changes should be tracked in the Git history until a dedicated `CHANGELOG.md` is added.
+Please see [CHANGELOG.md](CHANGELOG.md) for release-oriented package notes.
 
 ## License
 

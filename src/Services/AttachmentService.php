@@ -16,7 +16,7 @@ class AttachmentService
     public function store(
         Model $attachable,
         UploadedFile $file,
-        string $collection = 'default',
+        string $collection = Attachment::DEFAULT_COLLECTION,
         ?int $uploadedBy = null,
         ?string $visibility = null
     ): Attachment
@@ -53,7 +53,7 @@ class AttachmentService
     public function replace(
         Model $attachable,
         UploadedFile $file,
-        string $collection = 'default',
+        string $collection = Attachment::DEFAULT_COLLECTION,
         ?int $uploadedBy = null,
         ?string $visibility = null
     ): Attachment
@@ -64,7 +64,7 @@ class AttachmentService
         return $this->store($attachable, $file, $collection, $uploadedBy, $visibility);
     }
 
-    public function delete(Model $attachable, ?string $collection = 'default'): void
+    public function delete(Model $attachable, ?string $collection = Attachment::DEFAULT_COLLECTION): void
     {
         $this->guardAttachable($attachable);
         $query = $attachable->attachments();
@@ -88,9 +88,9 @@ class AttachmentService
 
     protected function resolveVisibility(?string $visibility): string
     {
-        $visibility = strtolower($visibility ?? config('attachments.visibility', 'public'));
+        $visibility = strtolower($visibility ?? config('attachments.visibility', Attachment::VISIBILITY_PUBLIC));
 
-        if (! in_array($visibility, ['public', 'private'], true)) {
+        if (! in_array($visibility, [Attachment::VISIBILITY_PUBLIC, Attachment::VISIBILITY_PRIVATE], true)) {
             throw new InvalidArgumentException('Attachment visibility must be either "public" or "private".');
         }
 

@@ -18,7 +18,7 @@ trait HasAttachments
                 return;
             }
 
-            app(AttachmentService::class)->delete($model, null);
+            self::resolveAttachmentService()->delete($model, null);
         });
     }
 
@@ -27,17 +27,22 @@ trait HasAttachments
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
-    public function attachment(string $collection = 'default'): MorphOne
+    public function attachment(string $collection = Attachment::DEFAULT_COLLECTION): MorphOne
     {
         return $this->morphOne(Attachment::class, 'attachable')->where('collection', $collection);
     }
 
-    public function attachmentUrl(string $collection = 'default', ?DateTimeInterface $expiresAt = null): ?string
+    public function attachmentUrl(string $collection = Attachment::DEFAULT_COLLECTION, ?DateTimeInterface $expiresAt = null): ?string
     {
         $attachment = $this->relationLoaded('attachments')
             ? $this->attachments->firstWhere('collection', $collection)
             : $this->attachment($collection)->first();
 
         return $attachment?->url($expiresAt);
+    }
+
+    protected static function resolveAttachmentService(): AttachmentService
+    {
+        return app(AttachmentService::class);
     }
 }

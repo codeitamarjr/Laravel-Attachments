@@ -1,5 +1,7 @@
 <?php
 
+use CodeItamarJr\Attachments\Models\Attachment;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -22,7 +24,7 @@ return [
     | temporary URLs when accessed through the package helpers.
     |
     */
-    'visibility' => env('ATTACHMENTS_VISIBILITY', 'public'),
+    'visibility' => env('ATTACHMENTS_VISIBILITY', Attachment::VISIBILITY_PUBLIC),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,5 +66,5 @@ return [
     | temporary URL that expires after this many minutes.
     |
     */
-    'private_url_ttl' => (int) env('ATTACHMENTS_PRIVATE_URL_TTL', 5),
+    'private_url_ttl' => (int) env('ATTACHMENTS_PRIVATE_URL_TTL', Attachment::DEFAULT_PRIVATE_URL_TTL),
 ];
