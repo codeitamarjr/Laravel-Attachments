@@ -13,6 +13,10 @@ return new class extends Migration
         }
 
         Schema::table('attachments', function (Blueprint $table) {
+            if (! Schema::hasColumn('attachments', 'visibility')) {
+                $table->string('visibility')->default('public')->after('path');
+            }
+
             try {
                 $table->dropForeign(['uploaded_by']);
             } catch (Throwable $exception) {
@@ -28,6 +32,10 @@ return new class extends Migration
         }
 
         Schema::table('attachments', function (Blueprint $table) {
+            if (Schema::hasColumn('attachments', 'visibility')) {
+                $table->dropColumn('visibility');
+            }
+
             try {
                 $table->foreign('uploaded_by')->references('id')->on('users')->nullOnDelete();
             } catch (Throwable $exception) {
