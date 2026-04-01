@@ -130,22 +130,23 @@ use CodeItamarJr\Attachments\Traits\HasAttachments;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
-class User extends Model implements Attachable
+class Invoice extends Model implements Attachable
 {
     use HasAttachments;
 
-    public function avatarAttachment(): MorphOne
+    public function documentAttachment(): MorphOne
     {
-        return $this->attachment('avatar');
+        return $this->attachment('document');
     }
 
-    public function getAvatarUrlAttribute(): ?string
+    public function getDocumentUrlAttribute(): ?string
     {
-        return $this->attachmentUrl('avatar');
+        return $this->attachmentUrl('document');
     }
 }
 ```
 
+Any Eloquent model can use the package, such as `Invoice`, `User`, `Post`, `Product`, or `Business`.
 Models that use the package should implement the `CodeItamarJr\Attachments\Contracts\Attachable` contract. The `HasAttachments` trait already provides the required methods.
 
 The trait adds:
@@ -159,32 +160,33 @@ The trait adds:
 Use `AttachmentService` to create a new attachment:
 
 ```php
+use App\Models\Invoice;
 use CodeItamarJr\Attachments\Services\AttachmentService;
 
-public function storeAvatar(AttachmentService $attachments)
+public function storeInvoiceDocument(AttachmentService $attachments)
 {
-    $user = request()->user();
-    $file = request()->file('avatar');
+    $invoice = Invoice::findOrFail(request('invoice_id'));
+    $file = request()->file('document');
 
     if (! $file) {
         return;
     }
 
-    $attachments->store($user, $file, 'avatar', $user->getKey());
+    $attachments->store($invoice, $file, 'document', request()->user()?->getKey());
 }
 ```
 
 Store a private attachment by overriding the default visibility:
 
 ```php
-$attachments->store($user, $file, 'passport', $user->getKey(), 'private');
+$attachments->store($invoice, $file, 'signed-copy', request()->user()?->getKey(), 'private');
 ```
 
 Store multiple named collections for the same model:
 
 ```php
-$attachments->store($user, $avatarFile, 'avatar', $user->getKey());
-$attachments->store($user, $coverFile, 'cover', $user->getKey());
+$attachments->store($invoice, $documentFile, 'document', request()->user()?->getKey());
+$attachments->store($invoice, $receiptFile, 'receipt', request()->user()?->getKey());
 ```
 
 Stored files are organized using this pattern:
@@ -196,7 +198,7 @@ Stored files are organized using this pattern:
 Example:
 
 ```text
-attachments/user/15/avatar/8f9c0d....jpg
+attachments/invoice/15/document/8f9c0d....pdf
 ```
 
 ## Replacing Files
@@ -204,7 +206,7 @@ attachments/user/15/avatar/8f9c0d....jpg
 Replace the current file for a collection:
 
 ```php
-$attachments->replace($user, $file, 'avatar', $user->getKey());
+$attachments->replace($invoice, $file, 'document', request()->user()?->getKey());
 ```
 
 This deletes the previous file in that collection before storing the new one.
@@ -214,13 +216,13 @@ This deletes the previous file in that collection before storing the new one.
 Delete one collection:
 
 ```php
-$attachments->delete($user, 'avatar');
+$attachments->delete($invoice, 'document');
 ```
 
 Delete all attachments for a model:
 
 ```php
-$attachments->delete($user, null);
+$attachments->delete($invoice, null);
 ```
 
 Models using `HasAttachments` also clean up their stored files automatically when they are force-deleted.
