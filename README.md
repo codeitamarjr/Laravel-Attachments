@@ -4,31 +4,25 @@
 [![Tests](https://github.com/codeitamarjr/Laravel-Attachments/actions/workflows/tests.yml/badge.svg)](https://github.com/codeitamarjr/Laravel-Attachments/actions/workflows/tests.yml)
 [![License](https://img.shields.io/github/license/codeitamarjr/Laravel-Attachments)](LICENSE)
 
-`codeitamarjr/laravel-attachments` adds a small attachment layer on top of Laravel's filesystem and Eloquent.
+`codeitamarjr/laravel-attachments` adds a small attachment layer/model on top of Laravel filesystem.
 
 It gives you:
 
-- A polymorphic `attachments` table for any Eloquent model
+- A polymorphic `attachments` table for any Model
 - A `HasAttachments` trait with explicit single-file and multi-file collection helpers
 - An `AttachmentService` for storing, replacing, and deleting files
 - Public/private visibility handling with URL abstraction
-- Configurable storage disk and base directory
-
-The package works with any Laravel filesystem disk. If your application uses S3, R2, or another adapter, install and configure that adapter in the host app as usual.
 
 ## Why This Package Exists
 
-In many Laravel applications, file uploads end up being handled piecemeal:
+In many Laravel applications, user file uploads end up being handled:
 
 - store the file in one place
 - save metadata somewhere else
-- manually wire the file back to a model
-- remember to clean up storage when the model or file is replaced
+- manually wire the metadata back to a model
+- remember to clean up storage when the model or file is replaced or deleted
 
-This package exists to make files feel like a first-class part of your Eloquent models.
-It gives you a reusable way to attach files to any model, persist their metadata, resolve URLs, replace them safely, and delete them cleanly without rebuilding that workflow in every project.
-
-Useful for invoices, users, posts, products, businesses, and any other model that needs persisted file attachments.
+This package creates the `attachments` table and the `Attachment` model, and it gives you a reusable way to attach files to any model and persist their metadata on the Attachment model, updating and deleting files being handled by the Trait and Service.
 
 ## Quick Start
 
@@ -38,88 +32,40 @@ php artisan vendor:publish --tag=attachments-migrations
 php artisan migrate
 ```
 
+Sample usage:
+
 ```php
 class Invoice extends Model implements Attachable
 {
     use HasAttachments;
 }
 
+// Store a new file in the "document" collection for the invoice model, associating the uploader by their authenticated ID:
 $attachments->store($invoice, $file, 'document', auth()->id());
 ```
 
 ## Contents
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Upgrading](#upgrading)
-- [Configuration](#configuration)
-- [Basic Usage](#basic-usage)
-- [Storing Files](#storing-files)
-- [Replacing Files](#replacing-files)
-- [Deleting Files](#deleting-files)
-- [Attachment Model](#attachment-model)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [Changelog](#changelog)
-- [License](#license)
+- [Laravel Attachments](#laravel-attachments)
+  - [Why This Package Exists](#why-this-package-exists)
+  - [Quick Start](#quick-start)
+  - [Contents](#contents)
+  - [Requirements](#requirements)
+  - [Configuration](#configuration)
+  - [Basic Usage](#basic-usage)
+  - [Storing Files](#storing-files)
+  - [Replacing Files](#replacing-files)
+  - [Deleting Files](#deleting-files)
+  - [Collection Semantics](#collection-semantics)
+  - [Attachment Model](#attachment-model)
+  - [Testing](#testing)
+  - [Changelog](#changelog)
+  - [License](#license)
 
 ## Requirements
 
 - PHP 8.3+
 - Laravel 11, 12, or 13
-
-## Installation
-
-Install the package via Composer:
-
-```bash
-composer require codeitamarjr/laravel-attachments
-```
-
-Laravel will auto-discover the service provider.
-
-Publish the configuration file if you want to override the defaults:
-
-```bash
-php artisan vendor:publish --tag=attachments-config
-```
-
-Publish the migration:
-
-```bash
-php artisan vendor:publish --tag=attachments-migrations
-```
-
-Run the migration:
-
-```bash
-php artisan migrate
-```
-
-## Upgrading
-
-If you are upgrading from an older release:
-
-1. Publish the latest package migrations:
-
-```bash
-php artisan vendor:publish --tag=attachments-migrations
-```
-
-2. Run your migrations:
-
-```bash
-php artisan migrate
-```
-
-If you are upgrading from a version that used `attachmentUrl()`, switch those calls to `firstAttachmentUrl()`. The old alias was removed to keep the collection URL API explicit.
-
-The package now publishes a single upgrade migration stub, `update_attachments_table.php`, which:
-
-- adds the `visibility` column for legacy installations
-- removes the hard foreign key assumption on `uploaded_by`
-
-That makes the package friendlier to applications with custom auth schemas.
 
 ## Configuration
 
@@ -135,24 +81,13 @@ The published `config/attachments.php` file exposes:
 By default the package reads:
 
 ```env
-ATTACHMENTS_DISK=public
-ATTACHMENTS_VISIBILITY=public
-ATTACHMENTS_UPLOADER_MODEL="App\\Models\\User"
-ATTACHMENTS_UPLOADER_FOREIGN_KEY=uploaded_by
-ATTACHMENTS_DIRECTORY=attachments
-ATTACHMENTS_PRIVATE_URL_TTL=5
+ATTACHMENTS_DISK=public // Optional, but defaults to public if not set. Make sure the selected disk is properly configured in config/filesystems.php and exposed in your application when applicable, Private attachments require a filesystem driver that supports Laravel temporary URLs.
+ATTACHMENTS_VISIBILITY=public // Optional, but defaults to public if not set. Can be overridden per attachment when storing.
+ATTACHMENTS_UPLOADER_MODEL="App\\Models\\User" // Optional, but defaults to User if not set
+ATTACHMENTS_UPLOADER_FOREIGN_KEY=uploaded_by // Nullable by default, but required if you set an uploader model
+ATTACHMENTS_DIRECTORY=attachments // Base directory for all attachments in the selected disk
+ATTACHMENTS_PRIVATE_URL_TTL=5 // Minutes for the temporary URL to remain valid
 ```
-
-`ATTACHMENTS_VISIBILITY` is the default visibility only. You can still store one attachment as `public` and another as `private` by passing the visibility explicitly when storing the file.
-
-Example custom uploader configuration:
-
-```php
-'uploader_model' => App\Models\Admin::class,
-'uploader_foreign_key' => 'uploaded_by',
-```
-
-The uploader is optional. If you store an attachment without passing an uploader ID, `uploaded_by` will be `null` and the `uploader()` relation will also resolve to `null`.
 
 ## Basic Usage
 
@@ -184,7 +119,7 @@ class Invoice extends Model implements Attachable
 }
 ```
 
-Any Eloquent model can use the package, such as `Invoice`, `User`, `Post`, `Product`, or `Business`.
+Any Eloquent model can use the package, such as `Invoice`, `User`, `Post`, `Product` ...
 Models that use the package should implement the `CodeItamarJr\Attachments\Contracts\Attachable` contract. The `HasAttachments` trait already provides the required methods.
 
 The trait adds:
@@ -348,13 +283,6 @@ The included `Attachment` model provides:
 - `temporaryUrl()` when you want to explicitly generate a signed temporary URL
 - `isPublic()` and `isPrivate()` visibility helpers
 
-## Notes
-
-- The published migration stores `uploaded_by` as a nullable indexed column without assuming a specific users table schema.
-- The `uploader()` relationship is configurable through `uploader_model` and `uploader_foreign_key`.
-- Private attachments require a filesystem driver that supports Laravel temporary URLs. If the selected disk does not support them, the package throws a clear runtime exception when generating a private URL.
-- If you use the `public` disk, remember to expose it in your application with Laravel's normal filesystem setup, such as `php artisan storage:link` when applicable.
-
 ## Testing
 
 Run the package test suite from the package directory:
@@ -363,30 +291,6 @@ Run the package test suite from the package directory:
 composer install
 composer test
 ```
-
-The package currently includes end-to-end coverage for:
-
-- public and private uploads
-- single-file and multi-file collection behavior
-- full-collection and single-item replacement
-- full-collection and single-item deletion
-- deleting all collections for a model
-- optional uploader behavior
-- soft delete vs force delete cleanup
-- attachable contract enforcement
-- uploader relation configuration
-- legacy schema upgrade behavior
-
-## Contributing
-
-Contributions are welcome. Before opening a pull request:
-
-```bash
-composer install
-composer test
-```
-
-Prefer small, focused changes with updated tests and README examples when public behavior changes.
 
 ## Changelog
 
